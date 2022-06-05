@@ -1,0 +1,73 @@
+load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
+load("@bazel_gazelle//:def.bzl", "DEFAULT_LANGUAGES", "gazelle", "gazelle_binary")
+load("@com_github_bazelbuild_buildtools//buildifier:def.bzl", "buildifier")
+
+gazelle_binary(
+    name = "gazelle_binary",
+    languages = [
+        "//language/bzl",
+        "//language/filegroup",
+        "//language/go",
+        "//language/proto",
+    ],
+)
+
+# gazelle:prefix github.com/sluongng/ugazelle
+gazelle(
+    name = "gazelle",
+    gazelle = "gazelle_binary",
+)
+
+gazelle(
+    name = "update-deps",
+    args = [
+        "-from_file=go.mod",
+        "-to_macro=deps.bzl%ugazelle_deps",
+        "-build_external=external",
+        "-prune",
+    ],
+    command = "update-repos",
+    gazelle = "gazelle_binary",
+)
+
+buildifier(
+    name = "buildifier",
+    visibility = ["//visibility:public"],
+)
+
+alias(
+    name = "gobin",
+    actual = "@go_sdk//:bin/go",
+    visibility = ["//visibility:public"],
+)
+
+filegroup(
+    name = "all_files",
+    testonly = True,
+    srcs = [
+        ".bazelrc",
+        ".bazelversion",
+        ".gitignore",
+        ".user.bazelrc",
+        "BUILD.bazel",
+        "README.md",
+        "WORKSPACE",
+        "bazel-bin",
+        "bazel-out",
+        "bazel-testlogs",
+        "bazel-ugazelle",
+        "deps.bzl",
+        "go.mod",
+        "go.sum",
+        "//internal:all_files",
+        "//language:all_files",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+bzl_library(
+    name = "deps",
+    srcs = ["deps.bzl"],
+    visibility = ["//visibility:public"],
+    deps = ["@bazel_gazelle//:deps"],
+)

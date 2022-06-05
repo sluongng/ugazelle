@@ -1,0 +1,12 @@
+filegroup(
+    name = "all_files",
+    testonly = True,
+    srcs = [
+        "BUILD.bazel",
+        "//language/bzl:all_files",
+        "//language/filegroup:all_files",
+        "//language/go:all_files",
+        "//language/proto:all_files",
+    ],
+    visibility = ["//visibility:public"],
+)

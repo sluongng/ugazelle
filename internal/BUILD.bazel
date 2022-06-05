@@ -1,0 +1,9 @@
+filegroup(
+    name = "all_files",
+    testonly = True,
+    srcs = [
+        "BUILD.bazel",
+        "//internal/version:all_files",
+    ],
+    visibility = ["//visibility:public"],
+)

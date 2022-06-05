@@ -1,0 +1,69 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+load("@bazel_gazelle//:def.bzl", "gazelle", "gazelle_binary")
+
+# gazelle:exclude testdata
+
+filegroup(
+    name = "all_files",
+    testonly = True,
+    srcs = [
+        "BUILD.bazel",
+        "README.md",
+        "gazelle.go",
+        "gazelle_test.go",
+        "loads.scm",
+        "treesitter.go",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+go_library(
+    name = "bzl",
+    srcs = [
+        "gazelle.go",
+        "treesitter.go",
+    ],
+    embedsrcs = ["loads.scm"],
+    importpath = "github.com/sluongng/ugazelle/language/bzl",
+    visibility = ["//visibility:public"],
+    deps = [
+        "@bazel_gazelle//config:go_default_library",
+        "@bazel_gazelle//label:go_default_library",
+        "@bazel_gazelle//language:go_default_library",
+        "@bazel_gazelle//pathtools:go_default_library",
+        "@bazel_gazelle//repo:go_default_library",
+        "@bazel_gazelle//resolve:go_default_library",
+        "@bazel_gazelle//rule:go_default_library",
+        "@com_github_smacker_go_tree_sitter//:go-tree-sitter",
+        "@com_github_smacker_go_tree_sitter//python",
+    ],
+)
+
+go_test(
+    name = "bzl_test",
+    srcs = ["gazelle_test.go"],
+    data = glob(["testdata/**"]) + [":gazelle-skylib"],  #keep
+    embed = [":bzl"],
+    deps = [
+        "@bazel_gazelle//testtools:go_default_library",
+        "@io_bazel_rules_go//go/tools/bazel:go_default_library",
+    ],
+)
+
+# This gazelle binary is used exclusively for testing the gazelle language
+# extension and thus only has the skylib language installed.
+gazelle_binary(
+    name = "gazelle-skylib",
+    languages = [":bzl"],
+    visibility = [
+        # Also make the binary available in the root of the repo for use, but
+        # not externally.
+        "//:__pkg__",
+    ],
+)
+
+# Can be used during development for manual testing
+gazelle(
+    name = "gazelle",
+    gazelle = ":gazelle-skylib",
+)
