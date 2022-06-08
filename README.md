@@ -52,7 +52,7 @@ For each extension will be copied over, then replace it's parser(native/regex...
   + [ ] Copied over
   + [ ] Use tree-sitter
 
-- [ ] TypeScript / NodeJS (source: ???)
+- [ ] TypeScript / NodeJS (source: benchsci/bazel_rules_nodejs_contrib)
   + [ ] Copied over
   + [ ] Use tree-sitter
 
@@ -60,6 +60,6 @@ For each extension will be copied over, then replace it's parser(native/regex...
   + [ ] Copied over
   + [ ] Use tree-sitter
 
-- [ ] <new extension here>
+- [ ] (new language here)
   + [ ] Copied over
   + [ ] Use tree-sitter
