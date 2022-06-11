@@ -1,6 +1,7 @@
 package bzl
 
 import (
+	"context"
 	_ "embed"
 	"fmt"
 	"os"
@@ -17,31 +18,23 @@ var loadModuleQuery []byte
 
 // getTreeSitterBzlFileLoads reimplement getBzlFileLoads but instead of using
 // the go-starlark parser, use tree-sitter generated parser of Python language.
-//
-// TODO: try to re-use the Parser, Query and QueryCursor as much as possible
-// instead of creating a new one each time.
-func getTreeSitterBzlFileLoads(path string) ([]string, error) {
+func getTreeSitterBzlFileLoads(parser *sitter.Parser, path string) ([]string, error) {
 	f, err := os.ReadFile(path)
 	if err != nil {
 		return nil, fmt.Errorf("ioutil.ReadFile(%q) error: %v", path, err)
 	}
 
-	parser := sitter.NewParser()
-	defer parser.Close()
-	parser.SetLanguage(python.GetLanguage())
-
-	tree := parser.Parse(nil, f)
-	defer tree.Close()
+	tree, err := parser.ParseCtx(context.Background(), nil, f)
+	if err != nil {
+		return nil, fmt.Errorf("Parse tree error: %v", err)
+	}
 
 	q, err := sitter.NewQuery(loadModuleQuery, python.GetLanguage())
 	if err != nil {
 		return nil, fmt.Errorf("New query init error: %v", err)
 	}
-	defer q.Close()
 
 	qc := sitter.NewQueryCursor()
-	defer qc.Close()
-
 	qc.Exec(q, tree.RootNode())
 
 	loads := []string{}

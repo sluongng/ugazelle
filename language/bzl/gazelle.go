@@ -38,6 +38,9 @@ import (
 	"github.com/bazelbuild/bazel-gazelle/repo"
 	"github.com/bazelbuild/bazel-gazelle/resolve"
 	"github.com/bazelbuild/bazel-gazelle/rule"
+
+	sitter "github.com/smacker/go-tree-sitter"
+	"github.com/smacker/go-tree-sitter/python"
 )
 
 const (
@@ -61,11 +64,16 @@ func (s suffixes) Matches(test string) bool {
 	return false
 }
 
-type bzlLibraryLang struct{}
+type bzlLibraryLang struct {
+	parser *sitter.Parser
+}
 
 // NewLanguage is called by Gazelle to install this language extension in a binary.
 func NewLanguage() language.Language {
-	return &bzlLibraryLang{}
+	parser := sitter.NewParser()
+	parser.SetLanguage(python.GetLanguage())
+
+	return &bzlLibraryLang{parser}
 }
 
 // Name returns the name of the language. This should be a prefix of the
@@ -234,7 +242,7 @@ func (*bzlLibraryLang) Resolve(
 //
 // Any non-fatal errors this function encounters should be logged using
 // log.Print.
-func (*bzlLibraryLang) GenerateRules(args language.GenerateArgs) language.GenerateResult {
+func (bzlLang *bzlLibraryLang) GenerateRules(args language.GenerateArgs) language.GenerateResult {
 	var rules []*rule.Rule
 	var imports []interface{}
 	for _, f := range append(args.RegularFiles, args.GenFiles...) {
@@ -253,7 +261,7 @@ func (*bzlLibraryLang) GenerateRules(args language.GenerateArgs) language.Genera
 		}
 
 		fullPath := filepath.Join(args.Dir, f)
-		loads, err := getTreeSitterBzlFileLoads(fullPath)
+		loads, err := getTreeSitterBzlFileLoads(bzlLang.parser, fullPath)
 		if err != nil {
 			log.Printf("%s: contains syntax errors: %v", fullPath, err)
 			// Don't `continue` since it is reasonable to create a target even
