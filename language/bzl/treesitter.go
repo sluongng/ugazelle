@@ -21,17 +21,17 @@ var loadModuleQuery []byte
 func getTreeSitterBzlFileLoads(parser *sitter.Parser, path string) ([]string, error) {
 	f, err := os.ReadFile(path)
 	if err != nil {
-		return nil, fmt.Errorf("ioutil.ReadFile(%q) error: %v", path, err)
+		return nil, fmt.Errorf("os.ReadFile(%q) error: %w", path, err)
 	}
 
 	tree, err := parser.ParseCtx(context.Background(), nil, f)
 	if err != nil {
-		return nil, fmt.Errorf("Parse tree error: %v", err)
+		return nil, fmt.Errorf("parse tree error: %w", err)
 	}
 
 	q, err := sitter.NewQuery(loadModuleQuery, python.GetLanguage())
 	if err != nil {
-		return nil, fmt.Errorf("New query init error: %v", err)
+		return nil, fmt.Errorf("new query init error: %w", err)
 	}
 
 	qc := sitter.NewQueryCursor()
